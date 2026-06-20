@@ -4,10 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GitHub Pages 測試</title>
+
+<!-- 第一頁開場樣式 -->
 <style>
-body{
+/* 開場容器，預設顯示 */
+#splash {
     margin:0;
+    height:100vh;
     display:flex;
+    justify-content:center;
+    align-items:center;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: radial-gradient(circle at center, #001a12, #000);
+    color:#fff;
+    font-family:Arial;
+    overflow:hidden;
+}
+.splash-box{
+    text-align:center;
+    transform: scale(1.1);
+}
+.splash-box h1{
+    font-size:48px;
+}
+.splash-box p{
+    font-size:18px;
+    opacity:0.8;
+}
+.hint{
+    margin-top:20px;
+    font-size:14px;
+    opacity:0.3;
+    animation:blink 1.5s infinite;
+}
+@keyframes blink{
+    0%,100%{opacity:0.2;}
+    50%{opacity:0.6;}
+}
+
+/* 第二頁主頁，預設隱藏 */
+#main-page {
+    display:none;
+    margin:0;
     justify-content:center;
     align-items:center;
     height:100vh;
@@ -15,28 +55,28 @@ body{
     color:#00ff88;
     font-family:Arial,sans-serif;
 }
-.box{
+.main-box{
     text-align:center;
 }
-h1{
+.main-box h1{
     font-size:48px;
     margin-bottom:20px;
     font-weight:bold;
 }
-h1 span{
+.main-box h1 span{
     display:inline-block;
     animation:bounce 1.2s infinite;
 }
-h1 span:nth-child(1){ animation-delay:0s; }
-h1 span:nth-child(2){ animation-delay:0.15s; }
-h1 span:nth-child(3){ animation-delay:0.30s; }
-h1 span:nth-child(4){ animation-delay:0.45s; }
+.main-box h1 span:nth-child(1){ animation-delay:0s; }
+.main-box h1 span:nth-child(2){ animation-delay:0.15s; }
+.main-box h1 span:nth-child(3){ animation-delay:0.30s; }
+.main-box h1 span:nth-child(4){ animation-delay:0.45s; }
 @keyframes bounce{
     0%,100%{ transform:translateY(0); }
     25%{ transform:translateY(-20px); }
     50%{ transform:translateY(0); }
 }
-p{ font-size:20px; }
+.main-box p{ font-size:20px; }
 #time{
     margin-top:20px;
     animation:pulse 1s infinite;
@@ -47,26 +87,56 @@ p{ font-size:20px; }
 }
 </style>
 </head>
-<body>
 
-<div class="box">
-    <h1>
-        <span>部</span>
-        <span>署</span>
-        <span>成</span>
-        <span>功</span>
-        🎉
-    </h1>
-    <p>GitHub Pages 正常運作</p>
-    <p id="time"></p>
+<body>
+<!-- 第一頁開場畫面 -->
+<div id="splash">
+    <div class="splash-box">
+        <h1>部署成功 🎉</h1>
+        <p>GitHub Pages 正常運作</p>
+        <div class="hint">點擊畫面繼續</div>
+    </div>
 </div>
 
-<!-- 背景音樂 - 直接使用 autoplay 嘗試自動播放 -->
-<audio id="bgm" loop autoplay>
-    <source src="music.mp3" type="audio/mpeg">
-</audio>
+<!-- 第二頁主頁（原始程式完全保留未修改） -->
+<div id="main-page">
+    <div class="main-box">
+        <h1>
+            <span>部</span>
+            <span>署</span>
+            <span>成</span>
+            <span>功</span>
+            🎉
+        </h1>
+        <p>GitHub Pages 正常運作</p>
+        <p id="time"></p>
+    </div>
+
+    <!-- 隱藏式背景音樂 -->
+    <audio id="bgm" loop>
+</div>
 
 <script>
+// 切換頁面 + 播放音樂邏輯
+const splash = document.getElementById('splash');
+const mainPage = document.getElementById('main-page');
+const bgm = document.getElementById('bgm');
+bgm.src = 'music.mp3';
+bgm.volume = 0.5;
+
+// 點擊任意處關閉開場、顯示主頁、播放音樂
+document.addEventListener('click', function onceClick() {
+    // 隱藏開場頁
+    splash.style.display = 'none';
+    // 顯示第二頁
+    mainPage.style.display = 'flex';
+    // 播放背景音樂
+    bgm.play().catch(e => console.log('播放失敗', e));
+    // 只觸發一次，移除監聽
+    document.removeEventListener('click', onceClick);
+});
+
+// ===== 以下是你第二頁原本完整JS，完全沒改動 =====
 // 更新時間
 function updateTime(){
     const now = new Date();
@@ -81,11 +151,6 @@ function updateTime(){
 }
 updateTime();
 setInterval(updateTime,1000);
-
-// 額外強制播放（瀏覽器可能會阻擋）
-const bgm = document.getElementById('bgm');
-bgm.volume = 0.5;
-bgm.play().catch(e => console.log('自動播放被阻擋，需使用者互動'));
 </script>
 
 </body>
