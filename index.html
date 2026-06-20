@@ -2,18 +2,21 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8" />
-    <!-- 1. 行動裝置滿版 + 仿App隱藏瀏覽器UI、禁止縮放 -->
+    <!-- 行動裝置滿版 + 仿App隱藏瀏覽器UI、禁止縮放 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <!-- viewport-fit=cover 解決蘋果全螢幕底部留白關鍵 -->
+    <!-- 主題色，加入主畫面必備 -->
+    <meta name="theme-color" content="#000000" />
     <!-- 仿App全螢幕模式設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- iOS加入主畫面捷徑名稱，解決圖標消失關鍵 -->
+    <meta name="apple-mobile-web-app-title" content="HTML模板">
     <meta name="mobile-web-app-capable" content="yes">
-    <!-- 2. 頁面標題 -->
+    <!-- 頁面標題 -->
     <title>HTML模板</title>
-    <!-- 3. favicon 分頁標籤圖示 -->
-    <link rel="icon" href="html.icon.png" type="image/png">
-    <!-- 重點：蘋果加入主畫面專用圖示，解決加到桌面圖標消失 -->
+    <!-- 安卓桌面捷徑icon，標明PNG+尺寸 -->
+    <link rel="icon" type="image/png" sizes="192x192" href="html.icon.png">
+    <!-- iOS加入主畫面專用圖示 -->
     <link rel="apple-touch-icon" href="html.icon.png">
 
     <style>
