@@ -61,8 +61,10 @@ p{ font-size:20px; }
     <p id="time"></p>
 </div>
 
-<!-- 隱藏式背景音樂 -->
-<audio id="bgm" loop>
+<!-- 背景音樂 - 直接使用 autoplay 嘗試自動播放 -->
+<audio id="bgm" loop autoplay>
+    <source src="music.mp3" type="audio/mpeg">
+</audio>
 
 <script>
 // 更新時間
@@ -80,15 +82,10 @@ function updateTime(){
 updateTime();
 setInterval(updateTime,1000);
 
-// 背景音樂自動播放（繞過瀏覽器限制）
+// 額外強制播放（瀏覽器可能會阻擋）
 const bgm = document.getElementById('bgm');
-bgm.src = 'music.mp3';
-bgm.volume = 0.5; // 音量可自己調整 0~1
-
-// 偵測使用者第一次互動就播放
-document.addEventListener('click', () => {
-    bgm.play().catch(e => console.log('播放失敗', e));
-}, { once: true });
+bgm.volume = 0.5;
+bgm.play().catch(e => console.log('自動播放被阻擋，需使用者互動'));
 </script>
 
 </body>
