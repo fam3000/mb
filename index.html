@@ -2,8 +2,16 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GitHub Pages 測試</title>
+    <!-- 1. 行動裝置滿版 + 仿App隱藏瀏覽器UI、禁止縮放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- 仿App全螢幕模式設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <!-- 2. 頁面標題改為 HTML模板 -->
+    <title>HTML模板</title>
+    <!-- 3. 同資料夾 icon：html.icon 做網頁圖示 -->
+    <link rel="icon" href="html.icon" type="image/x-icon">
     <style>
         /* ----- 全域重置 ----- */
         * {
@@ -16,6 +24,9 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            /* 禁止頁面選取文字，更像App */
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         /* ----- 滿版容器 (兩頁共用) ----- */
@@ -296,7 +307,7 @@
             </div>
         </div>
         <!-- 背景音樂 -->
-        <audio id="bgm" loop></audio>
+        <audio id="bgm" loop>
     </div>
 
     <script>
