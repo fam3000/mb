@@ -1,1 +1,95 @@
-<!DOCTYPE html> <html lang="zh-TW"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>GitHub Pages 測試</title>  <style> body{     margin:0;     display:flex;     justify-content:center;     align-items:center;     height:100vh;     background:#111;     color:#00ff88;     font-family:Arial,sans-serif; }  .box{     text-align:center; }  h1{     font-size:48px;     margin-bottom:20px;     font-weight:bold; }  h1 span{     display:inline-block;     animation:bounce 1.2s infinite; }  h1 span:nth-child(1){     animation-delay:0s; }  h1 span:nth-child(2){     animation-delay:0.15s; }  h1 span:nth-child(3){     animation-delay:0.30s; }  h1 span:nth-child(4){     animation-delay:0.45s; }  @keyframes bounce{     0%,100%{         transform:translateY(0);     }      25%{         transform:translateY(-20px);     }      50%{         transform:translateY(0);     } }  p{     font-size:20px; }  #time{     margin-top:20px;     animation:pulse 1s infinite; }  @keyframes pulse{     0%,100%{         opacity:1;     }      50%{         opacity:0.75;     } } </style> </head>  <body>  <div class="box">      <h1>         <span>部</span>         <span>署</span>         <span>成</span>         <span>功</span>         🎉     </h1>      <p>GitHub Pages 正常運作</p>      <p id="time"></p>  </div>  <audio autoplay loop>     <source src="music.mp3" type="audio/mpeg"> </audio>  <script>  function updateTime(){      const now = new Date();      const year = now.getFullYear();     const month = String(now.getMonth() + 1).padStart(2,'0');     const day = String(now.getDate()).padStart(2,'0');      const hour = String(now.getHours()).padStart(2,'0');     const minute = String(now.getMinutes()).padStart(2,'0');     const second = String(now.getSeconds()).padStart(2,'0');      document.getElementById("time").innerHTML =         `目前時間：${year}/${month}/${day} ${hour}:${minute}:${second}`; }  updateTime();  setInterval(updateTime,1000);  </script>  </body> </html> 
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Pages 測試</title>
+<style>
+body{
+    margin:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    background:#111;
+    color:#00ff88;
+    font-family:Arial,sans-serif;
+}
+.box{
+    text-align:center;
+}
+h1{
+    font-size:48px;
+    margin-bottom:20px;
+    font-weight:bold;
+}
+h1 span{
+    display:inline-block;
+    animation:bounce 1.2s infinite;
+}
+h1 span:nth-child(1){ animation-delay:0s; }
+h1 span:nth-child(2){ animation-delay:0.15s; }
+h1 span:nth-child(3){ animation-delay:0.30s; }
+h1 span:nth-child(4){ animation-delay:0.45s; }
+@keyframes bounce{
+    0%,100%{ transform:translateY(0); }
+    25%{ transform:translateY(-20px); }
+    50%{ transform:translateY(0); }
+}
+p{ font-size:20px; }
+#time{
+    margin-top:20px;
+    animation:pulse 1s infinite;
+}
+@keyframes pulse{
+    0%,100%{ opacity:1; }
+    50%{ opacity:0.75; }
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+    <h1>
+        <span>部</span>
+        <span>署</span>
+        <span>成</span>
+        <span>功</span>
+        🎉
+    </h1>
+    <p>GitHub Pages 正常運作</p>
+    <p id="time"></p>
+</div>
+
+<!-- 隱藏式背景音樂 -->
+<audio id="bgm" loop>
+
+<script>
+// 更新時間
+function updateTime(){
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2,'0');
+    const day = String(now.getDate()).padStart(2,'0');
+    const hour = String(now.getHours()).padStart(2,'0');
+    const minute = String(now.getMinutes()).padStart(2,'0');
+    const second = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById("time").innerHTML =
+        `目前時間：${year}/${month}/${day} ${hour}:${minute}:${second}`;
+}
+updateTime();
+setInterval(updateTime,1000);
+
+// 背景音樂自動播放（繞過瀏覽器限制）
+const bgm = document.getElementById('bgm');
+bgm.src = 'music.mp3';
+bgm.volume = 0.5; // 音量可自己調整 0~1
+
+// 偵測使用者第一次互動就播放
+document.addEventListener('click', () => {
+    bgm.play().catch(e => console.log('播放失敗', e));
+}, { once: true });
+</script>
+
+</body>
+</html>
