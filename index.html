@@ -2,16 +2,18 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8" />
-    <!-- 1. 行動裝置滿版 + 仿App隱藏瀏覽器UI、禁止縮放 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <!-- 仿App全螢幕模式設定 -->
+    <!-- 行動裝置滿版、禁止縮放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <!-- 手機加入主畫面App模式，透明狀態列消除頂部白條 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <!-- 2. 頁面標題改為 HTML模板 -->
+    <!-- 頂部狀態列背景色，匹配深色背景 -->
+    <meta name="theme-color" content="#000000">
+    <!-- 頁面標題 -->
     <title>HTML模板</title>
-    <!-- 3. 同資料夾 icon：html.icon.png 做網頁圖示 -->
-    <link rel="icon" href="html.icon.png" type="image/x-icon">
+    <!-- 圖示檔：html.icon.png -->
+    <link rel="icon" href="html.icon.png" type="image/png">
     <style>
         /* ----- 全域重置 ----- */
         * {
@@ -24,15 +26,23 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            /* 禁止頁面選取文字，更像App */
+            /* 延伸至螢幕安全區（消除頂部/底部留白） */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            /* 禁止選取文字，仿App體驗 */
             user-select: none;
             -webkit-user-select: none;
+            /* 背景與頁面漸層統一，狀態列融合 */
+            background: radial-gradient(circle at center, #001a12, #000);
         }
 
         /* ----- 滿版容器 (兩頁共用) ----- */
         .full-screen {
             position: fixed;
             inset: 0;
+            /* 補償手機安全區高度，內容不被狀態列遮擋 */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -46,18 +56,15 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            /* 固定寬度讓文字居中位置一致 */
             width: 100%;
             max-width: 700px;
             padding: 0 20px;
-            /* 所有文字區塊佔據相同高度，避免切換時跳動 */
             min-height: 220px;
         }
 
-        /* ----- 標題區域 (兩頁結構一致) ----- */
+        /* ----- 標題區域 ----- */
         .title-line {
             height: 70px;
-            /* 固定高度，讓彈跳動畫不影響佈局 */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -69,29 +76,25 @@
             display: flex;
             align-items: center;
             gap: 0;
-            /* span 之間無間隙 */
         }
         .main-title span {
             display: inline-block;
         }
 
-        /* ----- 第二行描述 (兩頁完全一樣) ----- */
+        /* ----- 描述文字 ----- */
         .desc {
             font-size: 20px;
             margin: 12px 0 0 0;
-            /* 與標題保持固定間距 */
             opacity: 0.8;
             height: 30px;
-            /* 固定高度，保持位置 */
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* ----- 第三行 (兩頁樣式統一) ----- */
+        /* ----- 底部文字區塊 ----- */
         .footer-line {
             height: 36px;
-            /* 固定高度，與 desc 間距固定 */
             margin-top: 16px;
             display: flex;
             align-items: center;
@@ -99,100 +102,63 @@
         }
         .footer-text {
             font-size: 20px;
-            /* 兩頁統一 20px，不再大小不一 */
             margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* ----- 開場頁 (splash) 文字顏色 ----- */
-        #splash .main-title {
-            color: #fff;
-        }
-        #splash .desc {
-            color: #fff;
-        }
+        /* 開場頁色彩 */
+        #splash .main-title { color: #fff; }
+        #splash .desc { color: #fff; }
         #splash .footer-text {
             color: #fff;
             opacity: 0.3;
             animation: blink 1.5s infinite;
         }
 
-        /* ----- 主頁 (main-page) 文字顏色 ----- */
-        #main-page .main-title {
-            color: #00ff88;
-        }
-        #main-page .desc {
-            color: #00ff88;
-        }
+        /* 主頁色彩 */
+        #main-page .main-title { color: #00ff88; }
+        #main-page .desc { color: #00ff88; }
         #main-page .footer-text {
             color: #00ff88;
             animation: pulse 1s infinite;
         }
 
-        /* ----- 動畫關鍵幀 ----- */
+        /* 動畫定義 */
         @keyframes blink {
-            0%,
-            100% {
-                opacity: 0.2;
-            }
-            50% {
-                opacity: 0.6;
-            }
+            0%,100% { opacity: 0.2; }
+            50% { opacity: 0.6; }
         }
         @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.75;
-            }
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.75; }
+        }
+        @keyframes bounce {
+            0%,100% { transform: translateY(0); }
+            25% { transform: translateY(-20px); }
+            50% { transform: translateY(0); }
         }
 
-        /* ----- 彈跳動畫 (逐字) ----- */
+        /* 逐字彈跳動畫 */
         .bounce-title span {
             display: inline-block;
             animation: bounce 1.2s infinite;
         }
-        .bounce-title span:nth-child(1) {
-            animation-delay: 0s;
-        }
-        .bounce-title span:nth-child(2) {
-            animation-delay: 0.15s;
-        }
-        .bounce-title span:nth-child(3) {
-            animation-delay: 0.30s;
-        }
-        .bounce-title span:nth-child(4) {
-            animation-delay: 0.45s;
-        }
-        .bounce-title span:nth-child(5) {
-            animation-delay: 0.60s;
-        }
-        @keyframes bounce {
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-            25% {
-                transform: translateY(-20px);
-            }
-            50% {
-                transform: translateY(0);
-            }
-        }
+        .bounce-title span:nth-child(1) { animation-delay: 0s; }
+        .bounce-title span:nth-child(2) { animation-delay: 0.15s; }
+        .bounce-title span:nth-child(3) { animation-delay: 0.30s; }
+        .bounce-title span:nth-child(4) { animation-delay: 0.45s; }
+        .bounce-title span:nth-child(5) { animation-delay: 0.60s; }
 
-        /* ----- 主頁預設隱藏 ----- */
+        /* 主頁預設隱藏 */
         #main-page {
             display: none;
         }
 
-        /* ----- 確保兩頁 .content-wrap 完全一致 ----- */
+        /* 兩頁統一佈局樣式 */
         #splash .content-wrap,
         #main-page .content-wrap {
-            /* 完全相同的 flex 佈局 */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -202,8 +168,6 @@
             padding: 0 20px;
             min-height: 220px;
         }
-
-        /* 所有文字區塊高度固定，確保垂直位置完全對齊 */
         #splash .title-line,
         #main-page .title-line {
             height: 70px;
@@ -237,37 +201,22 @@
             justify-content: center;
         }
 
-        /* 小螢幕微調 */
+        /* 手機小螢幕響應式 */
         @media (max-width: 480px) {
-            .main-title {
-                font-size: 32px;
-            }
-            .desc,
-            .footer-text {
-                font-size: 16px;
-            }
-            .title-line {
-                height: 54px;
-            }
-            .desc {
-                height: 26px;
-            }
-            .footer-line {
-                height: 30px;
-            }
-            .content-wrap {
-                min-height: 170px;
-            }
+            .main-title { font-size: 32px; }
+            .desc, .footer-text { font-size: 16px; }
+            .title-line { height: 54px; }
+            .desc { height: 26px; }
+            .footer-line { height: 30px; }
+            .content-wrap { min-height: 170px; }
         }
     </style>
 </head>
 
 <body>
-
-    <!-- ====== 第一頁：開場畫面 ====== -->
+    <!-- 開場畫面 -->
     <div id="splash" class="full-screen">
         <div class="content-wrap">
-            <!-- 標題：使用 span 拆分，與第二頁結構完全一致 -->
             <div class="title-line">
                 <h1 class="main-title">
                     <span>部</span>
@@ -277,19 +226,16 @@
                     <span>🎉</span>
                 </h1>
             </div>
-            <!-- 描述 -->
             <p class="desc">GitHub Pages 正常運作</p>
-            <!-- 底部提示 -->
             <div class="footer-line">
                 <p class="footer-text">點擊畫面繼續</p>
             </div>
         </div>
     </div>
 
-    <!-- ====== 第二頁：點擊後主頁 ====== -->
+    <!-- 主頁畫面 -->
     <div id="main-page" class="full-screen">
         <div class="content-wrap">
-            <!-- 標題：與第一頁完全相同，僅多了 bounce-title 動畫 -->
             <div class="title-line">
                 <h1 class="main-title bounce-title">
                     <span>部</span>
@@ -299,9 +245,7 @@
                     <span>🎉</span>
                 </h1>
             </div>
-            <!-- 描述：與第一頁完全相同 -->
             <p class="desc">GitHub Pages 正常運作</p>
-            <!-- 底部：顯示時間，樣式與第一頁完全一致 -->
             <div class="footer-line">
                 <p class="footer-text" id="time">目前時間：--/--/---- --:--:--</p>
             </div>
@@ -311,38 +255,33 @@
     </div>
 
     <script>
-        // ----- DOM 參考 -----
         const splash = document.getElementById('splash');
         const mainPage = document.getElementById('main-page');
         const bgm = document.getElementById('bgm');
         bgm.src = 'music.mp3';
         bgm.volume = 0.5;
 
-        // ----- 點擊切換 + 播放音樂 (只觸發一次) -----
+        // 單次點擊切換頁面
         document.addEventListener('click', function onceClick() {
             splash.style.display = 'none';
             mainPage.style.display = 'flex';
-            bgm.play().catch(function(e) {
-                console.log('播放失敗', e);
-            });
+            bgm.play().catch(e => console.log('音樂播放失敗', e));
             document.removeEventListener('click', onceClick);
         });
 
-        // ----- 時間更新 (與原版邏輯相同) -----
+        // 即時時鐘
         function updateTime() {
-            var now = new Date();
-            var year = now.getFullYear();
-            var month = String(now.getMonth() + 1).padStart(2, '0');
-            var day = String(now.getDate()).padStart(2, '0');
-            var hour = String(now.getHours()).padStart(2, '0');
-            var minute = String(now.getMinutes()).padStart(2, '0');
-            var second = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('time').textContent =
-                '目前時間：' + year + '/' + month + '/' + day + ' ' + hour + ':' + minute + ':' + second;
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hour = String(now.getHours()).padStart(2, '0');
+            const minute = String(now.getMinutes()).padStart(2, '0');
+            const second = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('time').textContent = `目前時間：${year}/${month}/${day} ${hour}:${minute}:${second}`;
         }
         updateTime();
         setInterval(updateTime, 1000);
     </script>
-
 </body>
 </html>
