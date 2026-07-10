@@ -36,7 +36,8 @@
       user-select: none;
       -webkit-user-select: none;
       background: var(--color-bg);
-      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      padding: 0;
+      margin: 0;
     }
 
     .full-screen {
@@ -83,7 +84,6 @@
       position: relative;
     }
 
-    /* 標題下拉容器 一體化設計 */
     .logo-dropdown-wrap {
       position: relative;
       flex-shrink: 0;
@@ -111,7 +111,6 @@
       animation: bounce 1s infinite alternate;
     }
 
-    /* 下拉選單和頂部導航同風格、直排整齊 */
     .logo-dropdown-menu {
       display: none;
       position: absolute;
@@ -292,23 +291,29 @@
       inset: 0;
       background: rgba(0,0,0,0.35);
       display: none;
-      align-items: center;
+      align-items: flex-end;
       justify-content: center;
       z-index: 99;
-      padding: 16px;
+      padding: 0;
     }
     .modal-mask.show {
       display: flex;
     }
     .modal {
-      width: min(720px, 100%);
-      max-height: 85vh;
+      width: 100%;
+      max-width: 720px;
+      max-height: 70vh;
       background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+      border-radius: 14px 14px 0 0;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.12);
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      transform: translateY(0);
+      transition: transform 0.22s ease;
+    }
+    .modal-mask:not(.show) .modal {
+      transform: translateY(100%);
     }
     .modal-head {
       padding: 14px 16px;
@@ -396,12 +401,9 @@
 <body>
   <div class="app-shell">
     <header class="app-header">
-      <!-- 左上角標題下拉容器 -->
       <div class="logo-dropdown-wrap" id="logoDropdownWrap">
         <div id="appLogo" class="app-logo">web</div>
-        <div class="logo-dropdown-menu" id="logoMenu">
-          <!-- 動態渲染模板選項 -->
-        </div>
+        <div class="logo-dropdown-menu" id="logoMenu"></div>
       </div>
 
       <div class="tab-scroll-wrap">
@@ -434,7 +436,6 @@
           <input id="logoInput" type="text" value="web" />
         </div>
 
-        <!-- 新增：標題下拉模板清單 -->
         <div>
           <div class="field-label">標題點擊下拉模板清單（格式：名稱  網址，一行一組，空格分隔）</div>
           <textarea id="logoMenuInput" placeholder="PCB工具 pcb.html
@@ -487,7 +488,6 @@
       homeTitle: 'web',
       iconFile: 'web.icon.png',
       gapValue: 8,
-      // 標題下拉模板預設清單
       logoMenuList: [
         { name: 'PCB工具', src: 'pcb.html' },
         { name: '薪資計算', src: 'salary.html' },
@@ -501,7 +501,6 @@
       ]
     };
 
-    // DOM 元素快取
     const tabBar = document.getElementById('tabBar');
     const toolFrame = document.getElementById('toolFrame');
     const loadingTip = document.getElementById('loadingTip');
@@ -526,14 +525,12 @@
     let longPressTimer = null;
     let isLongPressed = false;
 
-    // 名稱轉安全檔名
     function slugify(name) {
       return name.trim().toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^\w\u4e00-\u9fff-]/g, '');
     }
 
-    // 解析文字清單（空格分隔通用）
     function parseListText(text) {
       const lines = text.split('\n').map(item => item.trim()).filter(Boolean);
       const res = [];
@@ -553,12 +550,10 @@
       return res;
     }
 
-    // 渲染左上角下拉模板選單
     function renderLogoMenu() {
       logoMenu.innerHTML = logoMenuData.map(item => `
         <button class="logo-dropdown-item" data-src="${item.src}">${item.name}</button>
       `).join('');
-      // 綁定點擊切換頁面
       logoMenu.querySelectorAll('.logo-dropdown-item').forEach(btn => {
         btn.onclick = () => {
           const src = btn.dataset.src;
@@ -568,7 +563,6 @@
       })
     }
 
-    // 複製文字通用函式
     function copyText(text) {
       return new Promise((resolve) => {
         try {
@@ -603,7 +597,6 @@
       });
     }
 
-    // 匯出乾淨HTML（移除設定與下拉程式）
     function getCleanHtml() {
       const clone = document.documentElement.cloneNode(true);
       clone.querySelector('.setting-btn')?.remove();
@@ -687,13 +680,11 @@
       isLongPressed = false;
     }
 
-    // 點擊左上角標題切換下拉選單
     appLogo.addEventListener('click', (e) => {
       e.stopPropagation();
       logoDropdownWrap.classList.toggle('show');
     })
 
-    // 點擊頁面空白處關閉所有下拉
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.logo-dropdown-wrap')) {
         logoDropdownWrap.classList.remove('show');
@@ -735,21 +726,18 @@
       showLoading(false);
     });
 
-    // 開啟設定面板回填資料
     openSettingsBtn.addEventListener('click', () => {
       logoInput.value = appLogo.textContent.trim() || APP_CONFIG.logoText;
       titleInput.value = document.title || APP_CONFIG.appTitle;
       iconInput.value = document.querySelector('link[rel="icon"]')?.getAttribute('href') || APP_CONFIG.iconFile;
       gapInput.value = document.documentElement.style.getPropertyValue('--gap') || APP_CONFIG.gapValue;
 
-      // 回填標題下拉清單
       const logoSaveText = logoMenuData.map(t => {
         if (t.src === slugify(t.name) + '.html') return t.name;
         else return `${t.name} ${t.src}`;
       }).join('\n');
       logoMenuInput.value = logoSaveText;
 
-      // 回填分頁按鈕清單
       const saveList = tools.map(t => {
         if (t.src === slugify(t.name) + '.html') return t.name;
         else return `${t.name} ${t.src}`;
@@ -775,7 +763,6 @@
       if (e.target === modalMask) modalMask.classList.remove('show');
     });
 
-    // 套用設定
     applyBtn.addEventListener('click', () => {
       const logoText = logoInput.value.trim();
       const pageTitle = titleInput.value.trim();
@@ -792,11 +779,9 @@
       }
       if (gapVal) updateGapValue(gapVal);
 
-      // 更新標題下拉模板
       logoMenuData = parseListText(logoMenuText);
       renderLogoMenu();
 
-      // 更新頂部分頁按鈕
       const newTools = parseListText(toolText);
       if (newTools.length) {
         tools = newTools;
@@ -810,7 +795,6 @@
       modalMask.classList.remove('show');
     });
 
-    // 初始化執行
     appLogo.textContent = APP_CONFIG.logoText;
     document.title = APP_CONFIG.appTitle;
     document.querySelector('meta[name="apple-mobile-web-app-title"]').setAttribute('content', APP_CONFIG.homeTitle);
