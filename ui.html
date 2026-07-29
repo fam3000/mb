@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>提示詞工坊</title>
+<link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--sat:max(env(safe-area-inset-top,0px),24px);--sab:max(env(safe-area-inset-bottom,0px),0px);--bg:#0d0d14;--bg-card:#161625;--bg-card-hover:#1e1e32;--accent:#f97316;--accent-light:#fb923c;--accent-dim:rgba(249,115,22,0.12);--text:#e8e8f0;--text-sec:#8888a8;--border:#2a2a40;--selected-bg:rgba(249,115,22,0.13);--selected-border:#f97316;--danger:#ef4444;--success:#22c55e;--radius:14px;--radius-sm:10px}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:15px;line-height:1.5}
+input,button,textarea{font-family:inherit;font-size:inherit;border:none;outline:none;background:none;color:inherit}
+button{cursor:pointer}
+::-webkit-scrollbar{width:0;height:0}
+
+/* 页面容器 */
+.page{display:none;flex-direction:column;height:100%;width:100%;position:absolute;top:0;left:0}
+.page.active{display:flex}
+
+/* 导航栏 */
+.navbar{position:relative;z-index:100;flex-shrink:0;padding-top:var(--sat);height:100px;display:flex;align-items:flex-end;padding-bottom:20px;padding-left:16px;padding-right:16px;background:linear-gradient(180deg,var(--bg) 60%,transparent)}
+.navbar-title{flex:1;text-align:center;font-size:18px;font-weight:700;letter-spacing:0.5px}
+.navbar-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;color:var(--text-sec);font-size:16px;transition:all .2s}
+.navbar-btn:active{background:var(--accent-dim);color:var(--accent)}
+
+/* 搜索栏 */
+.search-wrap{flex-shrink:0;padding:0 16px 12px;position:relative}
+.search-wrap i{position:absolute;left:28px;top:50%;transform:translateY(calc(-50% - 6px));color:var(--text-sec);font-size:14px;pointer-events:none}
+.search-input{width:100%;height:42px;border-radius:21px;background:var(--bg-card);border:1px solid var(--border);padding:0 16px 0 38px;color:var(--text);font-size:14px;transition:border-color .2s}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--text-sec)}
+
+/* 分类标签 */
+.category-tabs{flex-shrink:0;padding:0 16px 10px;overflow-x:auto;white-space:nowrap;display:flex;gap:8px;-webkit-overflow-scrolling:touch}
+.category-tabs::-webkit-scrollbar{display:none}
+.cat-tab{flex-shrink:0;padding:7px 16px;border-radius:20px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-sec);font-size:13px;font-weight:500;transition:all .25s}
+.cat-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.cat-tab:active{transform:scale(0.95)}
+
+/* 选项列表 */
+.options-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 120px}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.option-card{position:relative;background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 12px 12px;transition:all .25s;overflow:hidden}
+.option-card:active{transform:scale(0.97)}
+.option-card.selected{background:var(--selected-bg);border-color:var(--selected-border)}
+.option-card.selected::after{content:'';position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center}
+.option-card.selected .check-icon{display:block}
+.check-icon{display:none;position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;background:var(--accent);z-index:2}
+.check-icon i{color:#fff;font-size:10px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+.option-name{font-size:14px;font-weight:700;margin-bottom:4px;padding-right:24px;color:var(--text)}
+.option-desc{font-size:11.5px;color:var(--text-sec);line-height:1.4;margin-bottom:6px}
+.option-area{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;background:var(--accent-dim);color:var(--accent-light);font-weight:500}
+
+/* 底部操作栏 */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:200;padding:12px 16px;padding-bottom:calc(12px + var(--sab));background:linear-gradient(0deg,var(--bg) 70%,transparent);display:flex;align-items:center;gap:12px}
+.selected-info{font-size:14px;color:var(--text-sec);font-weight:500;white-space:nowrap}
+.selected-info span{color:var(--accent);font-weight:900;font-size:20px}
+.btn-generate{flex:1;height:48px;border-radius:24px;background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;font-size:15px;font-weight:700;letter-spacing:1px;transition:all .2s;box-shadow:0 4px 20px rgba(249,115,22,0.3)}
+.btn-generate:active{transform:scale(0.96);box-shadow:0 2px 10px rgba(249,115,22,0.2)}
+.btn-generate:disabled{opacity:0.4;pointer-events:none}
+
+/* 模板预览页 */
+.preview-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 120px}
+.template-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-all;color:var(--text)}
+.template-box .t-heading{color:var(--accent);font-weight:700;font-size:14px;margin-top:12px}
+.template-box .t-heading:first-child{margin-top:0}
+.template-box .t-item{color:var(--text);padding-left:8px}
+.template-box .t-sep{color:var(--text-sec);margin:8px 0}
+.btn-copy{flex:1;height:48px;border-radius:24px;background:linear-gradient(135deg,var(--accent),#ea580c);color:#fff;font-size:15px;font-weight:700;letter-spacing:1px;transition:all .2s;box-shadow:0 4px 20px rgba(249,115,22,0.3)}
+.btn-copy:active{transform:scale(0.96)}
+.btn-secondary{height:48px;padding:0 20px;border-radius:24px;background:var(--bg-card);border:1.5px solid var(--border);color:var(--text);font-size:14px;font-weight:500;transition:all .2s}
+.btn-secondary:active{transform:scale(0.96);border-color:var(--accent)}
+
+/* Toast */
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);z-index:9999;padding:14px 28px;border-radius:var(--radius);background:rgba(30,30,50,0.95);color:#fff;font-size:14px;font-weight:500;opacity:0;pointer-events:none;transition:all .3s;backdrop-filter:blur(10px);border:1px solid var(--border);text-align:center;max-width:80vw}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+/* 确认弹窗 */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:500;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:320px;text-align:center}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:8px}
+.modal-desc{font-size:13px;color:var(--text-sec);margin-bottom:20px;line-height:1.5}
+.modal-actions{display:flex;gap:10px}
+.modal-actions button{flex:1;height:44px;border-radius:22px;font-weight:600;font-size:14px;transition:all .2s}
+.modal-actions button:active{transform:scale(0.96)}
+.btn-modal-cancel{background:var(--bg);border:1px solid var(--border);color:var(--text-sec)}
+.btn-modal-confirm{background:var(--danger);color:#fff}
+
+/* 空状态 */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-sec)}
+.empty-state i{font-size:40px;margin-bottom:12px;display:block;opacity:0.4}
+.empty-state p{font-size:14px}
+
+/* 统计条 */
+.stats-bar{flex-shrink:0;padding:0 16px 8px;display:flex;gap:8px;flex-wrap:wrap}
+.stat-chip{font-size:11px;padding:3px 10px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-sec)}
+.stat-chip b{color:var(--accent);font-weight:700}
+
+/* 快捷操作 */
+.quick-actions{flex-shrink:0;padding:0 16px 10px;display:flex;gap:8px}
+.quick-btn{padding:6px 14px;border-radius:16px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-sec);font-size:12px;font-weight:500;transition:all .2s}
+.quick-btn:active{transform:scale(0.95);border-color:var(--accent);color:var(--accent)}
+
+/* 背景装饰 */
+.bg-glow{position:fixed;top:-100px;right:-100px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(249,115,22,0.06),transparent 70%);pointer-events:none;z-index:0}
+.bg-glow2{position:fixed;bottom:-80px;left:-80px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(249,115,22,0.04),transparent 70%);pointer-events:none;z-index:0}
+
+/* 动画 */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.option-card{animation:fadeIn .3s ease both}
+</style>
+</head>
+<body>
+
+<!-- 背景装饰 -->
+<div class="bg-glow"></div>
+<div class="bg-glow2"></div>
+
+<!-- 页面1：选择器 -->
+<div id="page-selector" class="page active">
+  <header class="navbar">
+    <button class="navbar-btn" id="btn-menu" aria-label="菜单"><i class="fas fa-ellipsis-v"></i></button>
+    <div class="navbar-title">提示詞工坊</div>
+    <div style="width:36px"></div>
+  </header>
+
+  <div class="search-wrap">
+    <i class="fas fa-search"></i>
+    <input type="search" class="search-input" id="search-input" placeholder="搜索組件、功能或關鍵字...">
+  </div>
+
+  <div class="category-tabs" id="category-tabs"></div>
+
+  <div class="quick-actions">
+    <button class="quick-btn" id="btn-select-all"><i class="fas fa-check-double"></i> 全選當前</button>
+    <button class="quick-btn" id="btn-clear-current"><i class="fas fa-times"></i> 清除當前</button>
+    <button class="quick-btn" id="btn-clear-all"><i class="fas fa-trash-alt"></i> 全部清除</button>
+  </div>
+
+  <div class="options-scroll" id="options-scroll">
+    <div class="options-grid" id="options-grid"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="selected-info">已選 <span id="selected-count">0</span> 項</div>
+    <button class="btn-generate" id="btn-generate" disabled>生成模板</button>
+  </div>
+</div>
+
+<!-- 页面2：模板预览 -->
+<div id="page-preview" class="page">
+  <header class="navbar">
+    <button class="navbar-btn" id="btn-back" aria-label="返回"><i class="fas fa-arrow-left"></i></button>
+    <div class="navbar-title">模板預覽</div>
+    <div style="width:36px"></div>
+  </header>
+
+  <div class="preview-scroll" id="preview-scroll">
+    <div class="template-box" id="template-box"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn-secondary" id="btn-save-template"><i class="fas fa-bookmark"></i> 保存選擇</button>
+    <button class="btn-copy" id="btn-copy"><i class="fas fa-copy"></i> 複製模板</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 确认弹窗 -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">確認操作</div>
+    <div class="modal-desc" id="modal-desc">確定要執行此操作嗎？</div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" id="modal-cancel">取消</button>
+      <button class="btn-modal-confirm" id="modal-confirm">確定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================
+   数据定义 - 14大分类、约100个专业术语选项
+   ============================ */
+const CATEGORIES = [
+  {
+    id: 'layout', name: '頁面佈局', icon: 'fa-layer-group',
+    items: [
+      { id: 'spa', name: '單頁應用 SPA', desc: '整個應用在一個頁面中運行，通過切換顯示不同內容', area: '全局架構' },
+      { id: 'mpa', name: '多頁應用 MPA', desc: '多個獨立頁面，通過連結跳轉切換', area: '全局架構' },
+      { id: 'tab-nav', name: '標籤頁導航', desc: '底部Tab切換不同功能區，類似原生App', area: '主導航' },
+      { id: 'sidebar', name: '側邊欄', desc: '側面滑出功能面板，可放置選單或篩選', area: '輔助導航' },
+      { id: 'masonry', name: '瀑布流', desc: '不等高內容交錯排列，適合圖片牆', area: '內容區域' },
+      { id: 'grid', name: '網格佈局', desc: '等分格子排列內容，整齊規律', area: '內容區域' },
+      { id: 'fullscreen-scroll', name: '全屏滾動', desc: '每屏一個完整內容區，翻頁式瀏覽', area: '內容區域' },
+      { id: 'card-layout', name: '卡片式佈局', desc: '內容以獨立卡片形式展示，層次分明', area: '內容區域' }
+    ]
+  },
+  {
+    id: 'navigation', name: '導航組件', icon: 'fa-compass',
+    items: [
+      { id: 'bottom-tab', name: '底部導航欄', desc: '固定在底部的功能切換欄，3-5個入口', area: '主導航' },
+      { id: 'top-navbar', name: '頂部導航欄', desc: '固定在頂部的標題和操作按鈕', area: '頁面標題' },
+      { id: 'drawer-menu', name: '抽屜選單', desc: '側滑展開的導航選單，可放多層級', area: '輔助導航' },
+      { id: 'breadcrumb', name: '麵包屑導航', desc: '顯示當前頁面層級路徑，方便回溯', area: '路徑導航' },
+      { id: 'hamburger', name: '漢堡選單', desc: '三條線圖標，點擊展開導航選項', area: '輔助導航' },
+      { id: 'fab', name: '浮動操作按鈕', desc: '懸浮在頁面上的主要操作入口', area: '快捷操作' },
+      { id: 'back-top', name: '返回頂部', desc: '滾動後出現，點擊快速回到頁面頂部', area: '輔助功能' },
+      { id: 'swipe-nav', name: '側滑導航', desc: '左右滑動切換頁面或分類', area: '頁面切換' }
+    ]
+  },
+  {
+    id: 'data-display', name: '數據展示', icon: 'fa-table-cells',
+    items: [
+      { id: 'list-view', name: '列表視圖', desc: '垂直排列的數據項，可帶頭像標題副標題', area: '內容區域' },
+      { id: 'table', name: '表格', desc: '行列結構化數據展示，適合對比分析', area: '數據區域' },
+      { id: 'card', name: '卡片', desc: '獨立資訊單元，含圖片標題描述操作', area: '內容區域' },
+      { id: 'carousel', name: '輪播圖', desc: '自動或手動切換的圖片/內容展示', area: '展示區域' },
+      { id: 'tabs', name: '標籤頁', desc: '內容分類切換顯示，節省空間', area: '內容分類' },
+      { id: 'accordion', name: '手風琴', desc: '可展開收起的內容區，適合FAQ', area: '內容區域' },
+      { id: 'timeline', name: '時間線', desc: '按時間排列事件，展示進程歷史', area: '內容區域' },
+      { id: 'virtual-list', name: '虛擬列表', desc: '大數據量高性能渲染，只渲染可見區域', area: '內容區域' }
+    ]
+  },
+  {
+    id: 'form', name: '表單輸入', icon: 'fa-pen-to-square',
+    items: [
+      { id: 'text-input', name: '文字輸入框', desc: '單行文字輸入，支援各種驗證', area: '表單區域' },
+      { id: 'textarea', name: '多行文字', desc: '多行文字輸入區域，可設最大字數', area: '表單區域' },
+      { id: 'select', name: '下拉選擇', desc: '從選項中選擇一項，可搜索篩選', area: '表單區域' },
+      { id: 'checkbox', name: '複選框', desc: '多選操作，可全選反選', area: '表單區域' },
+      { id: 'radio', name: '單選按鈕', desc: '多個選項中選擇一個', area: '表單區域' },
+      { id: 'toggle', name: '開關切換', desc: '二態切換操作，開/關狀態', area: '表單區域' },
+      { id: 'slider', name: '滑塊', desc: '拖動選擇數值範圍，可設步長', area: '表單區域' },
+      { id: 'date-picker', name: '日期選擇器', desc: '選擇日期或時間，滾輪式或日曆式', area: '表單區域' },
+      { id: 'file-upload', name: '文件上傳', desc: '選擇並上傳文件，可預覽進度', area: '表單區域' },
+      { id: 'search-bar', name: '搜索框', desc: '輸入關鍵字搜索，帶建議和歷史', area: '頂部區域' },
+      { id: 'rating', name: '評分組件', desc: '星級或分數評價，可半星', area: '表單區域' },
+      { id: 'stepper', name: '步進器', desc: '加減數量操作，可設最小最大值', area: '表單區域' }
+    ]
+  },
+  {
+    id: 'feedback', name: '反饋提示', icon: 'fa-bell',
+    items: [
+      { id: 'toast', name: 'Toast 提示', desc: '輕量級短暫提示，自動消失', area: '全局浮層' },
+      { id: 'dialog', name: '對話框 Modal', desc: '重要操作確認彈窗，可自定義按鈕', area: '全局浮層' },
+      { id: 'loading', name: '加載動畫', desc: '數據載入時的等待提示，Spinner或骨架', area: '全局/局部' },
+      { id: 'progress', name: '進度條', desc: '顯示操作完成進度，線性或環形', area: '內容區域' },
+      { id: 'pull-refresh', name: '下拉刷新', desc: '下拉觸發數據更新，帶動畫反饋', area: '頁面頂部' },
+      { id: 'skeleton', name: '骨架屏', desc: '內容載入前的佔位預覽，降低等待感', area: '內容區域' },
+      { id: 'empty-state', name: '空狀態', desc: '無數據時的友好提示，引導操作', area: '內容區域' },
+      { id: 'badge', name: '徽標', desc: '小圓點或數字提示，標記未讀或狀態', area: '圖標/標籤旁' },
+      { id: 'popover', name: '氣泡確認', desc: '小型確認彈出層，無需跳轉', area: '觸發元素旁' }
+    ]
+  },
+  {
+    id: 'gesture', name: '手勢交互', icon: 'fa-hand-pointer',
+    items: [
+      { id: 'swipe-delete', name: '左滑刪除', desc: '向左滑動列表項出現刪除按鈕', area: '列表項' },
+      { id: 'pull-refresh-g', name: '下拉刷新', desc: '下拉觸發更新，帶回彈動畫', area: '頁面頂部' },
+      { id: 'long-press', name: '長按操作', desc: '持續按壓觸發功能，如預覽或刪除', area: '任意元素' },
+      { id: 'drag-sort', name: '拖拽排序', desc: '拖動改變排列順序，帶佔位動畫', area: '列表區域' },
+      { id: 'pinch-zoom', name: '雙指縮放', desc: '手指捏合放大縮小圖片或地圖', area: '圖片/地圖' },
+      { id: 'swipe-back', name: '側滑返回', desc: '從左邊緣右滑返回上一頁', area: '頁面邊緣' }
+    ]
+  },
+  {
+    id: 'animation', name: '動畫效果', icon: 'fa-wand-magic-sparkles',
+    items: [
+      { id: 'page-transition', name: '頁面過渡', desc: '頁面切換時的滑入淡入等動畫', area: '頁面切換' },
+      { id: 'list-animation', name: '列表動畫', desc: '列表項依次進入或退出的動畫', area: '列表區域' },
+      { id: 'parallax', name: '視差滾動', desc: '背景與前景不同速度滾動，營造深度', area: '滾動頁面' },
+      { id: 'micro-interaction', name: '微交互', desc: '按鈕點擊、開關切換等細微反饋', area: '交互元素' },
+      { id: 'particle', name: '粒子效果', desc: '粒子動畫背景或特效，Canvas實現', area: '背景/裝飾' },
+      { id: 'gradient-anim', name: '漸變動畫', desc: '色彩漸變流動效果，背景或邊框', area: '背景/裝飾' },
+      { id: 'lottie', name: 'Lottie 動畫', desc: '高品質矢量動畫，流暢且體積小', area: '裝飾/引導' },
+      { id: 'count-up', name: '數字滾動', desc: '數值遞增動畫效果，適合統計展示', area: '數據展示' }
+    ]
+  },
+  {
+    id: 'storage', name: '數據存儲', icon: 'fa-database',
+    items: [
+      { id: 'local-storage', name: '本地存儲', desc: '鍵值對持久化存儲，跨會話保留', area: '數據層' },
+      { id: 'session-storage', name: '會話存儲', desc: '頁面關閉即清除的臨時存儲', area: '數據層' },
+      { id: 'indexed-db', name: 'IndexedDB', desc: '結構化大數據存儲，支持索引查詢', area: '數據層' },
+      { id: 'cache-api', name: '離線緩存', desc: 'Cache API資源緩存，離線可用', area: '數據層' },
+      { id: 'state-manage', name: '狀態管理', desc: '應用狀態統一管理，響應式更新', area: '邏輯層' },
+      { id: 'data-persist', name: '數據持久化', desc: '跨會話數據保留，自動存取恢復', area: '數據層' }
+    ]
+  },
+  {
+    id: 'network', name: '網路通信', icon: 'fa-globe',
+    items: [
+      { id: 'fetch-api', name: 'API 請求', desc: '與後端介面通信，RESTful或GraphQL', area: '數據層' },
+      { id: 'websocket', name: '即時通信', desc: 'WebSocket雙向實時數據傳輸', area: '數據層' },
+      { id: 'polling', name: '輪詢機制', desc: '定時請求更新數據，可設間隔', area: '數據層' },
+      { id: 'offline-detect', name: '離線檢測', desc: '監聽網路狀態變化，提示用戶', area: '全局功能' },
+      { id: 'data-sync', name: '數據同步', desc: '本地與遠端數據同步，衝突處理', area: '數據層' },
+      { id: 'file-transfer', name: '文件傳輸', desc: '上傳下載文件，支持進度和斷點', area: '數據層' }
+    ]
+  },
+  {
+    id: 'media', name: '媒體功能', icon: 'fa-photo-film',
+    items: [
+      { id: 'image-preview', name: '圖片預覽', desc: '全屏查看圖片，支持縮放和滑動', area: '媒體區域' },
+      { id: 'image-crop', name: '圖片裁剪', desc: '截取圖片部分區域，可旋轉調整', area: '媒體區域' },
+      { id: 'audio-player', name: '音頻播放', desc: '播放音樂或語音，帶進度控制', area: '媒體區域' },
+      { id: 'video-player', name: '視頻播放', desc: '播放視頻內容，帶控制列和全屏', area: '媒體區域' },
+      { id: 'camera', name: '相機調用', desc: '調用設備攝像頭拍照或錄影', area: '媒體區域' },
+      { id: 'qr-scanner', name: '二維碼掃描', desc: '掃描識別二維碼，即時解析', area: '媒體區域' },
+      { id: 'canvas-draw', name: '畫布繪圖', desc: '自由繪畫功能，支持多種畫筆', area: '媒體區域' },
+      { id: 'screenshot', name: '截圖功能', desc: '捕獲頁面或區域為圖片', area: '媒體區域' }
+    ]
+  },
+  {
+    id: 'device', name: '設備能力', icon: 'fa-mobile-screen',
+    items: [
+      { id: 'geolocation', name: '地理定位', desc: '獲取設備GPS位置，地圖標記', area: '設備介面' },
+      { id: 'vibration', name: '振動反饋', desc: '觸覺反饋提示，操作確認', area: '設備介面' },
+      { id: 'clipboard', name: '剪貼板', desc: '複製貼上內容到系統剪貼板', area: '設備介面' },
+      { id: 'notification', name: '通知推送', desc: '發送系統通知，後台提醒', area: '設備介面' },
+      { id: 'biometrics', name: '生物識別', desc: '指紋或面部驗證身份', area: '設備介面' },
+      { id: 'sensors', name: '傳感器', desc: '陀螺儀、加速度計等設備傳感器', area: '設備介面' }
+    ]
+  },
+  {
+    id: 'visual', name: '視覺風格', icon: 'fa-palette',
+    items: [
+      { id: 'glassmorphism', name: '毛玻璃', desc: '半透明模糊背景效果，層次感強', area: '視覺風格' },
+      { id: 'neumorphism', name: '新擬態', desc: '柔和凸起凹陷效果，質感細膩', area: '視覺風格' },
+      { id: 'flat-design', name: '扁平化', desc: '簡潔無陰影設計，注重色彩排版', area: '視覺風格' },
+      { id: 'dark-mode', name: '暗色模式', desc: '深色背景淺色文字，護眼省電', area: '視覺風格' },
+      { id: 'gradient', name: '漸變配色', desc: '色彩過渡漸變效果，視覺衝擊', area: '視覺風格' },
+      { id: 'responsive', name: '響應式設計', desc: '自適應不同螢幕尺寸和方向', area: '視覺風格' },
+      { id: 'safe-area', name: '安全區域適配', desc: '適配iPhone劉海/圓角/底部橫條', area: '視覺風格' },
+      { id: 'retina', name: '高 DPI 適配', desc: '支持視網膜屏清晰度，Canvas縮放', area: '視覺風格' }
+    ]
+  },
+  {
+    id: 'advanced', name: '高級特性', icon: 'fa-rocket',
+    items: [
+      { id: 'i18n', name: '國際化 i18n', desc: '多語言切換支持，動態載入語言包', area: '全局功能' },
+      { id: 'theme-switch', name: '主題切換', desc: '多套主題風格切換，暗色/亮色', area: '全局功能' },
+      { id: 'accessibility', name: '無障礙', desc: '支持輔助功能使用，ARIA標籤', area: '全局功能' },
+      { id: 'performance', name: '性能優化', desc: '懶加載、節流防抖、虛擬列表等', area: '全局功能' },
+      { id: 'error-boundary', name: '錯誤邊界', desc: '異常捕獲和降級處理，友好提示', area: '全局功能' },
+      { id: 'lazy-load', name: '懶加載', desc: '按需載入資源和內容，提升速度', area: '全局功能' },
+      { id: 'debounce-throttle', name: '防抖節流', desc: '控制高頻觸發頻率，優化性能', area: '全局功能' },
+      { id: 'pwa', name: 'PWA 支持', desc: '離線可用，添加到主屏幕，Service Worker', area: '全局功能' }
+    ]
+  },
+  {
+    id: 'business', name: '業務場景', icon: 'fa-briefcase',
+    items: [
+      { id: 'auth', name: '用戶認證', desc: '登入註冊忘記密碼，Token管理', area: '用戶系統' },
+      { id: 'shopping-cart', name: '購物車', desc: '商品選購數量調整結算流程', area: '電商系統' },
+      { id: 'payment', name: '支付流程', desc: '付款訂單管理，支付狀態追蹤', area: '交易系統' },
+      { id: 'social-share', name: '社交分享', desc: '分享到社交平台，生成海報', area: '社交功能' },
+      { id: 'messaging', name: '消息系統', desc: '即時聊天訊息通知，未讀計數', area: '通信系統' },
+      { id: 'search', name: '搜索功能', desc: '關鍵字搜索篩選排序，歷史記錄', area: '查找功能' },
+      { id: 'favorites', name: '收藏功能', desc: '收藏喜歡的內容，分類管理', area: '用戶功能' },
+      { id: 'comments', name: '評論系統', desc: '發表回覆評論，點讚排序', area: '社交互動' }
+    ]
+  }
+];
+
+/* ============================
+   应用主类
+   ============================ */
+class App {
+  constructor() {
+    /* 已选选项ID集合 */
+    this.selectedIds = new Set();
+    /* 当前分类 */
+    this.currentCategory = 'all';
+    /* 搜索关键词 */
+    this.searchKeyword = '';
+    /* 弹窗回调 */
+    this.modalCallback = null;
+  }
+
+  /* 初始化 */
+  async init() {
+    this.renderCategoryTabs();
+    this.bindEvents();
+    await this.loadSelection();
+    this.renderOptions();
+    this.updateCount();
+  }
+
+  /* ==================== 渲染 ==================== */
+
+  /* 渲染分类标签 */
+  renderCategoryTabs() {
+    const container = document.getElementById('category-tabs');
+    let html = '<button class="cat-tab active" data-cat="all">全部</button>';
+    CATEGORIES.forEach(cat => {
+      html += `<button class="cat-tab" data-cat="${cat.id}"><i class="fas ${cat.icon}"></i> ${cat.name}</button>`;
+    });
+    container.innerHTML = html;
+  }
+
+  /* 渲染选项卡片 */
+  renderOptions() {
+    const grid = document.getElementById('options-grid');
+    const items = this.getFilteredItems();
+
+    if (items.length === 0) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/3"><i class="fas fa-search"></i><p>沒有找到匹配的選項</p></div>`;
+      return;
+    }
+
+    let html = '';
+    items.forEach((item, index) => {
+      const isSelected = this.selectedIds.has(item.id);
+      html += `<div class="option-card${isSelected ? ' selected' : ''}" data-id="${item.id}" style="animation-delay:${Math.min(index * 0.03, 0.5)}s">
+        <div class="check-icon"><i class="fas fa-check"></i></div>
+        <div class="option-name">${item.name}</div>
+        <div class="option-desc">${item.desc}</div>
+        <div class="option-area">${item.area}</div>
+      </div>`;
+    });
+    grid.innerHTML = html;
+  }
+
+  /* 获取过滤后的选项 */
+  getFilteredItems() {
+    let items = [];
+    const keyword = this.searchKeyword.toLowerCase().trim();
+
+    CATEGORIES.forEach(cat => {
+      if (this.currentCategory !== 'all' && cat.id !== this.currentCategory) return;
+      cat.items.forEach(item => {
+        if (keyword) {
+          const match = item.name.toLowerCase().includes(keyword) ||
+                        item.desc.toLowerCase().includes(keyword) ||
+                        item.area.toLowerCase().includes(keyword) ||
+                        item.id.toLowerCase().includes(keyword);
+          if (!match) return;
+        }
+        items.push(item);
+      });
+    });
+    return items;
+  }
+
+  /* 更新已选计数 */
+  updateCount() {
+    const countEl = document.getElementById('selected-count');
+    const btnGen = document.getElementById('btn-generate');
+    countEl.textContent = this.selectedIds.size;
+    btnGen.disabled = this.selectedIds.size === 0;
+  }
+
+  /* ==================== 事件绑定 ==================== */
+
+  bindEvents() {
+    /* 分类标签点击 */
+    document.getElementById('category-tabs').addEventListener('click', (e) => {
+      const tab = e.target.closest('.cat-tab');
+      if (!tab) return;
+      document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      this.currentCategory = tab.dataset.cat;
+      this.renderOptions();
+    });
+
+    /* 搜索输入 */
+    const searchInput = document.getElementById('search-input');
+    let searchTimer = null;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        this.searchKeyword = searchInput.value;
+        this.renderOptions();
+      }, 200);
+    });
+
+    /* 选项卡片点击 */
+    document.getElementById('options-grid').addEventListener('click', (e) => {
+      const card = e.target.closest('.option-card');
+      if (!card) return;
+      const id = card.dataset.id;
+      if (this.selectedIds.has(id)) {
+        this.selectedIds.delete(id);
+        card.classList.remove('selected');
+      } else {
+        this.selectedIds.add(id);
+        card.classList.add('selected');
+      }
+      this.updateCount();
+      this.saveSelection();
+    });
+
+    /* 全选当前分类 */
+    document.getElementById('btn-select-all').addEventListener('click', () => {
+      const items = this.getFilteredItems();
+      items.forEach(item => this.selectedIds.add(item.id));
+      this.renderOptions();
+      this.updateCount();
+      this.saveSelection();
+      this.showToast(`已選取 ${items.length} 項`);
+    });
+
+    /* 清除当前分类 */
+    document.getElementById('btn-clear-current').addEventListener('click', () => {
+      const items = this.getFilteredItems();
+      items.forEach(item => this.selectedIds.delete(item.id));
+      this.renderOptions();
+      this.updateCount();
+      this.saveSelection();
+      this.showToast('已清除當前分類選取');
+    });
+
+    /* 全部清除 */
+    document.getElementById('btn-clear-all').addEventListener('click', () => {
+      if (this.selectedIds.size === 0) {
+        this.showToast('目前沒有選取項目');
+        return;
+      }
+      this.showModal('確認清除', `確定要清除全部 ${this.selectedIds.size} 個已選項目嗎？`, () => {
+        this.selectedIds.clear();
+        this.renderOptions();
+        this.updateCount();
+        this.saveSelection();
+        this.showToast('已全部清除');
+      });
+    });
+
+    /* 生成模板 */
+    document.getElementById('btn-generate').addEventListener('click', () => {
+      this.generateTemplate();
+    });
+
+    /* 返回按钮 */
+    document.getElementById('btn-back').addEventListener('click', () => {
+      this.switchPage('page-selector');
+    });
+
+    /* 复制模板 */
+    document.getElementById('btn-copy').addEventListener('click', () => {
+      this.copyTemplate();
+    });
+
+    /* 保存选择 */
+    document.getElementById('btn-save-template').addEventListener('click', () => {
+      this.saveSelection();
+      this.showToast('選擇已保存到本機記憶');
+    });
+
+    /* 菜单按钮 */
+    document.getElementById('btn-menu').addEventListener('click', () => {
+      this.showModal('提示詞工坊', '將選中的組件和功能選項，組合生成一份結構化的 HTML5 應用提示詞模板。\n\n所有選擇自動保存到本機，下次打開自動恢復。', null, '了解了');
+    });
+
+    /* 弹窗取消 */
+    document.getElementById('modal-cancel').addEventListener('click', () => {
+      this.hideModal();
+    });
+
+    /* 弹窗确认 */
+    document.getElementById('modal-confirm').addEventListener('click', () => {
+      if (this.modalCallback) {
+        this.modalCallback();
+        this.modalCallback = null;
+      }
+      this.hideModal();
+    });
+  }
+
+  /* ==================== 页面切换 ==================== */
+
+  switchPage(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+  }
+
+  /* ==================== 模板生成 ==================== */
+
+  generateTemplate() {
+    if (this.selectedIds.size === 0) return;
+
+    /* 按分类整理已选项 */
+    const grouped = {};
+    CATEGORIES.forEach(cat => {
+      cat.items.forEach(item => {
+        if (this.selectedIds.has(item.id)) {
+          if (!grouped[cat.id]) {
+            grouped[cat.id] = { name: cat.name, items: [] };
+          }
+          grouped[cat.id].items.push(item);
+        }
+      });
+    });
+
+    /* 构建模板文本 */
+    let template = '';
+    template += `# HTML5 移動端應用需求提示詞\n\n`;
+    template += `## 基本設定\n`;
+    template += `- 平台：移動端（iPhone / iPad 適配）\n`;
+    template += `- 技術：純 HTML / CSS / JS 單文件\n`;
+    template += `- 要求：加入主畫面後滿屏顯示，原生 App 體驗\n`;
+    template += `- 安全區域：適配 iPhone 劉海、圓角、底部橫條\n`;
+    template += `- 視網膜屏：高 DPI 適配，Canvas 縮放處理\n\n`;
+
+    /* 逐分类输出 */
+    const categoryOrder = [
+      { id: 'layout', title: '頁面佈局', desc: '應用的整體佈局架構' },
+      { id: 'navigation', title: '導航組件', desc: '頁面導航和功能切換' },
+      { id: 'data-display', title: '數據展示', desc: '內容和數據的展示方式' },
+      { id: 'form', title: '表單輸入', desc: '用戶輸入和數據採集' },
+      { id: 'feedback', title: '反饋提示', desc: '操作反饋和狀態提示' },
+      { id: 'gesture', title: '手勢交互', desc: '觸控手勢和交互行為' },
+      { id: 'animation', title: '動畫效果', desc: '動畫和過渡效果' },
+      { id: 'storage', title: '數據存儲', desc: '本地數據存儲方案' },
+      { id: 'network', title: '網路通信', desc: '網路請求和數據通信' },
+      { id: 'media', title: '媒體功能', desc: '媒體處理和展示' },
+      { id: 'device', title: '設備能力', desc: '設備原生能力調用' },
+      { id: 'visual', title: '視覺風格', desc: '視覺設計風格要求' },
+      { id: 'advanced', title: '高級特性', desc: '高級功能和優化' },
+      { id: 'business', title: '業務場景', desc: '業務邏輯和功能場景' }
+    ];
+
+    categoryOrder.forEach(co => {
+      if (!grouped[co.id]) return;
+      const group = grouped[co.id];
+      template += `## ${co.title}\n`;
+      template += `> ${co.desc}\n\n`;
+      group.items.forEach(item => {
+        template += `- **${item.name}**（${item.area}）：${item.desc}\n`;
+      });
+      template += `\n`;
+    });
+
+    /* 通用要求 */
+    template += `---\n\n`;
+    template += `## 通用要求\n\n`;
+    template += `### 設計規範\n`;
+    template += `- 追求精美設計，高級審美，大方合理佈局\n`;
+    template += `- 遵循移動端真實 App 的設計準則\n`;
+    template += `- 合理使用大小、配色、間距、陰影等視覺技巧\n`;
+    template += `- 適配高 DPI 螢幕，避免頁面放大\n`;
+    template += `- 無橫向滾動條，縱向靈活滾動\n\n`;
+
+    template += `### 技術規範\n`;
+    template += `- 純 HTML / CSS / JS(ES6+) 單文件\n`;
+    template += `- CSS 變量管理主題色和間距\n`;
+    template += `- 語義化 HTML 標籤\n`;
+    template += `- 組件化代碼封裝\n`;
+    template += `- 輸入校驗、異常捕獲、防禦性編程\n`;
+    template += `- 註釋清晰，代碼結構良好\n\n`;
+
+    template += `### 交互體驗\n`;
+    template += `- 操作有即時反饋（視覺/觸覺）\n`;
+    template += `- 危險操作需二次確認\n`;
+    template += `- 空狀態和加載狀態有友好提示\n`;
+    template += `- 彈層居中模態，不使用系統 alert\n`;
+    template += `- 適配安全區域，滿屏顯示\n`;
+
+    /* 渲染到预览页 */
+    const box = document.getElementById('template-box');
+    box.textContent = template;
+
+    this.switchPage('page-preview');
+  }
+
+  /* ==================== 复制功能 ==================== */
+
+  async copyTemplate() {
+    const text = document.getElementById('template-box').textContent;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        /* 降级方案 */
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      this.showToast('模板已複製到剪貼板');
+    } catch (err) {
+      console.error('複製失敗:', err);
+      this.showToast('複製失敗，請手動選取複製');
+    }
+  }
+
+  /* ==================== 数据持久化 ==================== */
+
+  /* 保存选择到本地 */
+  async saveSelection() {
+    const data = { ids: Array.from(this.selectedIds), timestamp: Date.now() };
+    try {
+      if (typeof wusiStorage !== 'undefined') {
+        await wusiStorage.setItem('prompt_workshop_selection', data);
+      } else {
+        localStorage.setItem('prompt_workshop_selection', JSON.stringify(data));
+      }
+    } catch (err) {
+      console.error('保存失敗:', err);
+    }
+  }
+
+  /* 从本地加载选择 */
+  async loadSelection() {
+    let data = null;
+    try {
+      if (typeof wusiStorage !== 'undefined') {
+        /* 带重试的读取 */
+        for (let i = 0; i < 3; i++) {
+          data = wusiStorage.getItem('prompt_workshop_selection');
+          if (data) break;
+          await new Promise(r => setTimeout(r, 500));
+        }
+      } else {
+        const raw = localStorage.getItem('prompt_workshop_selection');
+        data = raw ? JSON.parse(raw) : null;
+      }
+    } catch (err) {
+      console.error('讀取失敗:', err);
+    }
+
+    if (data && data.ids && Array.isArray(data.ids)) {
+      data.ids.forEach(id => this.selectedIds.add(id));
+    }
+  }
+
+  /* ==================== Toast ==================== */
+
+  showToast(msg, duration = 2000) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, duration);
+  }
+
+  /* ==================== Modal ==================== */
+
+  showModal(title, desc, callback, confirmText) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-desc').textContent = desc;
+    document.getElementById('modal-confirm').textContent = confirmText || '確定';
+
+    if (!callback) {
+      /* 无回调时隐藏取消按钮 */
+      document.getElementById('modal-cancel').style.display = 'none';
+      document.getElementById('modal-confirm').style.background = 'var(--accent)';
+    } else {
+      document.getElementById('modal-cancel').style.display = '';
+      document.getElementById('modal-confirm').style.background = '';
+    }
+
+    this.modalCallback = callback;
+    document.getElementById('modal-overlay').classList.add('show');
+  }
+
+  hideModal() {
+    document.getElementById('modal-overlay').classList.remove('show');
+    this.modalCallback = null;
+  }
+}
+
+/* ==================== 启动应用 ==================== */
+const app = new App();
+document.addEventListener('DOMContentLoaded', () => {
+  /* 超时保护：2秒后强制初始化 */
+  const timer = setTimeout(() => {
+    console.warn('DOMContentLoaded 超時，強制初始化');
+    app.init();
+  }, 2000);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    clearTimeout(timer);
+  });
+
+  app.init();
+});
+</script>
+</body>
+</html>
